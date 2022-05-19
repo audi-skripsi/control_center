@@ -7,6 +7,7 @@ metadata:
 data:
   GLOBAL_KAFKA_ADDRESS: 172.17.0.1:29092,172.17.0.1:29093,172.17.0.1:29094
   INGESTOR_KAFKA_OUT_TOPIC: audi.skripsi.lambda_event_ingestion
+  INGESTOR_GRPC_ADDRESS: 0.0.0.0:8090
   
   LAMBDA_IDENTIFIER_KAFKA_CONSUMER_GROUP: audi.skripsi.lambda_speed_identifier_group
   LAMBDA_IDENTIFIER_KAFKA_IN_TOPIC: audi.skripsi.lambda_event_ingestion
@@ -50,7 +51,7 @@ spec:
     spec:
       containers:
       - name: audi-skripsi-log-ingestor-container
-        image: audi-skripsi-log-ingestor:1.0.0
+        image: audi-skripsi-log-ingestor:1.1.0
         ports:
         - containerPort: 8080
         env:
@@ -74,6 +75,54 @@ spec:
     - name: http
       port: 80
       targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audi-skripsi-log-ingestor-grpc-deployment
+  labels:
+    app: audi-skripsi-log-ingestor-grpc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: audi-skripsi-log-ingestor-grpc
+  template:
+    metadata:
+      labels:
+        app: audi-skripsi-log-ingestor-grpc
+    spec:
+      containers:
+      - name: audi-skripsi-log-ingestor-grpc-container
+        image: audi-skripsi-log-ingestor:1.1.0
+        command: ["./main"]
+        args: ["--grpc-mode"]
+        ports:
+        - containerPort: 8080
+        env:
+        - name: KAFKA_INGESTION_TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: INGESTOR_KAFKA_OUT_TOPIC
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: audi-skripsi-log-ingestor-grpc-service
+  labels:
+    app: audi-skripsi-log-ingestor-grpc
+spec:
+  type: NodePort
+  selector:
+    app: audi-skripsi-log-ingestor-grpc
+  ports:
+    - name: grpc
+      port: 80
+      targetPort: 8080
+      nodePort: 30010
 
 ---
 apiVersion: apps/v1
