@@ -23,6 +23,8 @@ data:
 
   LAMBDA_EVENT_PRESENTER_KAFKA_CONSUMER_GROUP: audi.skripsi.lambda_speed_event_presenter_group_tes
   LAMBDA_EVENT_PRESENTER_KAFKA_IN_TOPIC: audi.skripsi.lambda_speed_event_level_standardizer
+  LAMBDA_EVENT_PRESENTER_BATCH_SIZE: "200"
+  LAMBDA_EVENT_PRESENTER_BATCH_TIME_SECOND: "10"
 
   MONGODB_NAME: audi_skripsi_lambda
   MONGODB_ADDRESS: 172.17.0.1:27017
@@ -132,7 +134,7 @@ metadata:
   labels:
     app: audi-skripsi-lambda-identifier
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: audi-skripsi-lambda-identifier
@@ -186,7 +188,7 @@ metadata:
   labels:
     app: audi-skripsi-lambda-level-standardizer
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: audi-skripsi-lambda-level-standardizer
@@ -240,7 +242,7 @@ metadata:
   labels:
     app: audi-skripsi-lambda-event-presenter
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: audi-skripsi-lambda-event-presenter
@@ -251,7 +253,7 @@ spec:
     spec:
       containers:
       - name: audi-skripsi-lambda-event-presenter-container
-        image: audi-skripsi-lambda-event-presenter:1.0.0
+        image: audi-skripsi-lambda-event-presenter:1.1.1
         ports:
         - containerPort: 8080
         env:
@@ -285,6 +287,16 @@ spec:
             configMapKeyRef:
               name: main-config
               key: REDIS_PASSWORD
+        - name: BATCH_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_EVENT_PRESENTER_BATCH_SIZE
+        - name: BATCH_TIME_SECOND
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_EVENT_PRESENTER_BATCH_TIME_SECOND
 
 ---
 apiVersion: v1
@@ -371,7 +383,7 @@ metadata:
   labels:
     app: audi-skripsi-lambda-batch-processor-ingest
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: audi-skripsi-lambda-batch-processor-ingest
