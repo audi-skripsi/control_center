@@ -53,7 +53,7 @@ spec:
     spec:
       containers:
       - name: audi-skripsi-log-ingestor-container
-        image: audi-skripsi-log-ingestor:1.1.0
+        image: audi-skripsi-log-ingestor:1.1.1
         ports:
         - containerPort: 8080
         env:
@@ -97,7 +97,7 @@ spec:
     spec:
       containers:
       - name: audi-skripsi-log-ingestor-grpc-container
-        image: audi-skripsi-log-ingestor:1.1.0
+        image: audi-skripsi-log-ingestor:1.1.1
         command: ["./main"]
         args: ["--grpc-mode"]
         ports:
@@ -145,7 +145,7 @@ spec:
     spec:
       containers:
       - name: audi-skripsi-lambda-identifier-container
-        image: audi-skripsi-lambda-identifier:1.0.0
+        image: audi-skripsi-lambda-identifier:1.0.1
         ports:
         - containerPort: 8080
         env:
@@ -199,7 +199,7 @@ spec:
     spec:
       containers:
       - name: audi-skripsi-lambda-level-standardizer-container
-        image: audi-skripsi-lambda-level-standardizer:1.0.0
+        image: audi-skripsi-lambda-level-standardizer:1.0.1
         ports:
         - containerPort: 8080
         env:
@@ -253,7 +253,7 @@ spec:
     spec:
       containers:
       - name: audi-skripsi-lambda-event-presenter-container
-        image: audi-skripsi-lambda-event-presenter:1.1.1
+        image: audi-skripsi-lambda-event-presenter:1.1.2
         ports:
         - containerPort: 8080
         env:
@@ -332,7 +332,7 @@ spec:
     spec:
       containers:
       - name: audi-skripsi-lambda-batch-processor-container
-        image: audi-skripsi-lambda-batch-processor:1.0.0
+        image: audi-skripsi-lambda-batch-processor:1.0.1
         command: ["./main"]
         args: ["-log-extractor"]
         ports:
@@ -394,7 +394,7 @@ spec:
     spec:
       containers:
       - name: audi-skripsi-lambda-batch-processor-ingest-container
-        image: audi-skripsi-lambda-batch-processor:1.0.0
+        image: audi-skripsi-lambda-batch-processor:1.0.1
         command: ["./main"]
         args: ["-log-injector"]
         ports:
