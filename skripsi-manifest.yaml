@@ -13,16 +13,31 @@ data:
   LAMBDA_IDENTIFIER_KAFKA_IN_TOPIC: audi.skripsi.lambda_event_ingestion
   LAMBDA_IDENTIFIER_KAFKA_OUT_TOPIC: audi.skripsi.lambda_speed_event_identifier
   
+  LAMBDA_IDENTIFIER_BATCH_KAFKA_CONSUMER_GROUP: audi.skripsi.lambda_batch_identifier_group
+  LAMBDA_IDENTIFIER_BATCH_KAFKA_IN_TOPIC: audi.skripsi.lambda_event_ingestion
+  LAMBDA_IDENTIFIER_BATCH_KAFKA_OUT_TOPIC: audi.skripsi.lambda_batch_event_identifier
+  
+
   LAMBDA_LEVEL_STANDARDIZER_KAFKA_CONSUMER_GROUP: audi.skripsi.lambda_speed_level_standardizer_group
   LAMBDA_LEVEL_STANDARDIZER_KAFKA_IN_TOPIC: audi.skripsi.lambda_speed_event_identifier
   LAMBDA_LEVEL_STANDARDIZER_KAFKA_OUT_TOPIC: audi.skripsi.lambda_speed_event_level_standardizer
+
+  LAMBDA_LEVEL_STANDARDIZER_BATCH_KAFKA_CONSUMER_GROUP: audi.skripsi.lambda_batch_level_standardizer_group
+  LAMBDA_LEVEL_STANDARDIZER_BATCH_KAFKA_IN_TOPIC: audi.skripsi.lambda_batch_event_identifier
+  LAMBDA_LEVEL_STANDARDIZER_BATCH_KAFKA_OUT_TOPIC: audi.skripsi.lambda_batch_event_level_standardizer
+
 
   LAMBDA_BATCH_PROCESSOR_KAFKA_CONSUMER_GROUP: audi.skripsi.lambda_batch_processor_group_tes
   LAMBDA_BATCH_PROCESSOR_KAFKA_IN_TOPIC: audi.skripsi.lambda_event_ingestion
   LAMBDA_BATCH_PROCESSOR_KAFKA_OUT_TOPIC: audi.skripsi.lambda_batch_event_identifier
 
+
   LAMBDA_EVENT_PRESENTER_KAFKA_CONSUMER_GROUP: audi.skripsi.lambda_speed_event_presenter_group_tes
   LAMBDA_EVENT_PRESENTER_KAFKA_IN_TOPIC: audi.skripsi.lambda_speed_event_level_standardizer
+
+  LAMBDA_EVENT_PRESENTER_BATCH_KAFKA_CONSUMER_GROUP: audi.skripsi.lambda_batch_event_presenter_group_tes
+  LAMBDA_EVENT_PRESENTER_BATCH_KAFKA_IN_TOPIC: audi.skripsi.lambda_batch_event_level_standardizer
+
   LAMBDA_EVENT_PRESENTER_BATCH_SIZE: "200"
   LAMBDA_EVENT_PRESENTER_BATCH_TIME_SECOND: "10"
 
@@ -166,21 +181,6 @@ spec:
               key: LAMBDA_IDENTIFIER_KAFKA_OUT_TOPIC
 
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: audi-skripsi-lambda-identifier-service
-  labels:
-    app: audi-skripsi-lambda-identifier
-spec:
-  selector:
-    app: audi-skripsi-lambda-identifier
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8080
-
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -220,19 +220,82 @@ spec:
               key: LAMBDA_LEVEL_STANDARDIZER_KAFKA_OUT_TOPIC
 
 ---
-apiVersion: v1
-kind: Service
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: audi-skripsi-lambda-level-standardizer-service
+  name: audi-skripsi-lambda-batch-identifier-deployment
   labels:
-    app: audi-skripsi-lambda-level-standardizer
+    app: audi-skripsi-lambda-batch-identifier
 spec:
+  replicas: 3
   selector:
-    app: audi-skripsi-lambda-level-standardizer
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8080
+    matchLabels:
+      app: audi-skripsi-lambda-batch-identifier
+  template:
+    metadata:
+      labels:
+        app: audi-skripsi-lambda-batch-identifier
+    spec:
+      containers:
+      - name: audi-skripsi-lambda-batch-identifier-container
+        image: audi-skripsi-lambda-identifier:1.0.1
+        ports:
+        - containerPort: 8080
+        env:
+        - name: KAFKA_CONSUMER_GROUP
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_IDENTIFIER_BATCH_KAFKA_CONSUMER_GROUP
+        - name: KAFKA_IN_TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_IDENTIFIER_BATCH_KAFKA_IN_TOPIC
+        - name: KAFKA_OUT_TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_IDENTIFIER_BATCH_KAFKA_OUT_TOPIC
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audi-skripsi-lambda-batch-level-standardizer-deployment
+  labels:
+    app: audi-skripsi-lambda-batch-level-standardizer
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: audi-skripsi-lambda-batch-level-standardizer
+  template:
+    metadata:
+      labels:
+        app: audi-skripsi-lambda-batch-level-standardizer
+    spec:
+      containers:
+      - name: audi-skripsi-lambda-batch-level-standardizer-container
+        image: audi-skripsi-lambda-level-standardizer:1.0.1
+        ports:
+        - containerPort: 8080
+        env:
+        - name: KAFKA_CONSUMER_GROUP
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_LEVEL_STANDARDIZER_BATCH_KAFKA_CONSUMER_GROUP
+        - name: KAFKA_IN_TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_LEVEL_STANDARDIZER_BATCH_KAFKA_IN_TOPIC
+        - name: KAFKA_OUT_TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_LEVEL_STANDARDIZER_BATCH_KAFKA_OUT_TOPIC
 
 ---
 apiVersion: apps/v1
@@ -299,19 +362,68 @@ spec:
               key: LAMBDA_EVENT_PRESENTER_BATCH_TIME_SECOND
 
 ---
-apiVersion: v1
-kind: Service
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: audi-skripsi-lambda-event-presenter-service
+  name: audi-skripsi-lambda-batch-event-presenter-deployment
   labels:
-    app: audi-skripsi-lambda-event-presenter
+    app: audi-skripsi-lambda-batch-event-presenter
 spec:
+  replicas: 3
   selector:
-    app: audi-skripsi-lambda-event-presenter
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8080
+    matchLabels:
+      app: audi-skripsi-lambda-batch-event-presenter
+  template:
+    metadata:
+      labels:
+        app: audi-skripsi-lambda-batch-event-presenter
+    spec:
+      containers:
+      - name: audi-skripsi-lambda-batch-event-presenter-container
+        image: audi-skripsi-lambda-event-presenter:1.1.2
+        ports:
+        - containerPort: 8080
+        env:
+        - name: KAFKA_CONSUMER_GROUP
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_EVENT_PRESENTER_BATCH_KAFKA_CONSUMER_GROUP
+        - name: KAFKA_IN_TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_EVENT_PRESENTER_BATCH_KAFKA_IN_TOPIC
+        - name: MONGODB_DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: MONGODB_NAME
+        - name: MONGODB_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: MONGODB_ADDRESS
+        - name: REDIS_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: REDIS_ADDRESS
+        - name: REDIS_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: REDIS_PASSWORD
+        - name: BATCH_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_EVENT_PRESENTER_BATCH_SIZE
+        - name: BATCH_TIME_SECOND
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_EVENT_PRESENTER_BATCH_TIME_SECOND
 
 ---
 apiVersion: apps/v1
@@ -420,21 +532,6 @@ spec:
             configMapKeyRef:
               name: main-config
               key: NAME_NODE_ADDRESS
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: audi-skripsi-lambda-batch-processor-ingest-service
-  labels:
-    app: audi-skripsi-lambda-batch-processor-ingest
-spec:
-  selector:
-    app: audi-skripsi-lambda-batch-processor-ingest
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8081
 
 ---
 apiVersion: networking.k8s.io/v1
