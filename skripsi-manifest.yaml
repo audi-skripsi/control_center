@@ -14,7 +14,7 @@ data:
   LAMBDA_IDENTIFIER_KAFKA_OUT_TOPIC: audi.skripsi.lambda_speed_event_identifier
   
   LAMBDA_IDENTIFIER_BATCH_KAFKA_CONSUMER_GROUP: audi.skripsi.lambda_batch_identifier_group
-  LAMBDA_IDENTIFIER_BATCH_KAFKA_IN_TOPIC: audi.skripsi.lambda_event_ingestion
+  LAMBDA_IDENTIFIER_BATCH_KAFKA_IN_TOPIC: audi.skripsi.lambda_batch_processor_event_ingestion
   LAMBDA_IDENTIFIER_BATCH_KAFKA_OUT_TOPIC: audi.skripsi.lambda_batch_event_identifier
   
 
@@ -29,7 +29,7 @@ data:
 
   LAMBDA_BATCH_PROCESSOR_KAFKA_CONSUMER_GROUP: audi.skripsi.lambda_batch_processor_group_tes
   LAMBDA_BATCH_PROCESSOR_KAFKA_IN_TOPIC: audi.skripsi.lambda_event_ingestion
-  LAMBDA_BATCH_PROCESSOR_KAFKA_OUT_TOPIC: audi.skripsi.lambda_batch_event_identifier
+  LAMBDA_BATCH_PROCESSOR_KAFKA_OUT_TOPIC: audi.skripsi.lambda_batch_processor_event_ingestion
 
 
   LAMBDA_EVENT_PRESENTER_KAFKA_CONSUMER_GROUP: audi.skripsi.lambda_speed_event_presenter_group_tes
@@ -495,7 +495,7 @@ metadata:
   labels:
     app: audi-skripsi-lambda-batch-processor-ingest
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: audi-skripsi-lambda-batch-processor-ingest
