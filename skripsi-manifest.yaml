@@ -316,7 +316,7 @@ spec:
     spec:
       containers:
       - name: audi-skripsi-lambda-event-presenter-container
-        image: audi-skripsi-lambda-event-presenter:1.1.2
+        image: audi-skripsi-lambda-event-presenter:1.2.0
         ports:
         - containerPort: 8080
         env:
@@ -380,7 +380,7 @@ spec:
     spec:
       containers:
       - name: audi-skripsi-lambda-batch-event-presenter-container
-        image: audi-skripsi-lambda-event-presenter:1.1.2
+        image: audi-skripsi-lambda-event-presenter:1.2.0
         ports:
         - containerPort: 8080
         env:
@@ -394,6 +394,72 @@ spec:
             configMapKeyRef:
               name: main-config
               key: LAMBDA_EVENT_PRESENTER_BATCH_KAFKA_IN_TOPIC
+        - name: MONGODB_DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: MONGODB_NAME
+        - name: MONGODB_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: MONGODB_ADDRESS
+        - name: REDIS_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: REDIS_ADDRESS
+        - name: REDIS_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: REDIS_PASSWORD
+        - name: BATCH_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_EVENT_PRESENTER_BATCH_SIZE
+        - name: BATCH_TIME_SECOND
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_EVENT_PRESENTER_BATCH_TIME_SECOND
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audi-skripsi-lambda-event-presenter-webservice-deployment
+  labels:
+    app: audi-skripsi-lambda-event-presenter-webservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: audi-skripsi-lambda-event-presenter-webservice
+  template:
+    metadata:
+      labels:
+        app: audi-skripsi-lambda-event-presenter-webservice
+    spec:
+      containers:
+      - name: audi-skripsi-lambda-event-presenter-webservice-container
+        image: audi-skripsi-lambda-event-presenter:1.2.0
+        command: ["./main"]
+        args: ["-webservice-mode"]
+        ports:
+        - containerPort: 8080
+        env:
+        - name: KAFKA_CONSUMER_GROUP
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_EVENT_PRESENTER_KAFKA_CONSUMER_GROUP
+        - name: KAFKA_IN_TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: main-config
+              key: LAMBDA_EVENT_PRESENTER_KAFKA_IN_TOPIC
         - name: MONGODB_DB_NAME
           valueFrom:
             configMapKeyRef:
@@ -486,6 +552,20 @@ spec:
       port: 80
       targetPort: 8081
 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: audi-skripsi-lambda-event-presenter-webservice-service
+  labels:
+    app: audi-skripsi-lambda-event-presenter-webservice
+spec:
+  selector:
+    app: audi-skripsi-lambda-event-presenter-webservice
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
 
 ---
 apiVersion: apps/v1
@@ -560,5 +640,15 @@ spec:
         backend:
           service:
             name: audi-skripsi-lambda-batch-processor-service
+            port:
+              number: 80
+  - host: dashboard.skripsi.audipasuatmadi.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: audi-skripsi-lambda-event-presenter-webservice-service
             port:
               number: 80
