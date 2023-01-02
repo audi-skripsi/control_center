@@ -1,0 +1,29 @@
+Scenario
+
+Scenario I
+for checking speed of http
+- http
+- vus 10
+- iterations 5000
+
+Scenario II
+for checking speed of grpc
+- grpc
+- vus 10
+- iterations 5000
+
+Scenario III
+for checking reliability of the service that sender can still send without cascading error
+- http
+- vus 10
+- iterations 10000, with turned off service in the start
+
+Scenario IV
+for checking reproducibility, a derived data integrity reliability
+- batch http
+
+
+# notes
+to check collection count script:
+use audi_skripsi_lambda
+db.getCollectionNames().map(k => db[k].count()).reduce((p, k) => p + k, 0)
