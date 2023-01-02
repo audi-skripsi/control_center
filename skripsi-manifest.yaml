@@ -2,12 +2,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: main-config
+  name: main-config-5
   namespace: default
 data:
-  GLOBAL_KAFKA_ADDRESS: 172.17.0.1:29092,172.17.0.1:29093,172.17.0.1:29094
+  KAFKA_ADDRESS: host.docker.internal:29092,host.docker.internal:29093,host.docker.internal:29094
   INGESTOR_KAFKA_OUT_TOPIC: audi.skripsi.lambda_event_ingestion
-  INGESTOR_GRPC_ADDRESS: 0.0.0.0:8090
+  INGESTOR_GPRC_ADDRESS: 0.0.0.0:8090
   
   LAMBDA_IDENTIFIER_KAFKA_CONSUMER_GROUP: audi.skripsi.lambda_speed_identifier_group
   LAMBDA_IDENTIFIER_KAFKA_IN_TOPIC: audi.skripsi.lambda_event_ingestion
@@ -42,13 +42,35 @@ data:
   LAMBDA_EVENT_PRESENTER_BATCH_TIME_SECOND: "10"
 
   MONGODB_NAME: audi_skripsi_lambda
-  MONGODB_ADDRESS: 172.17.0.1:27017
+  MONGODB_ADDRESS: root:1212@host.docker.internal:27017
 
-  REDIS_ADDRESS: 172.17.0.1:6379
+  REDIS_ADDRESS: host.docker.internal:6379
   REDIS_PASSWORD: ""
 
-  NAME_NODE_ADDRESS: 172.17.0.1:9000
-  
+  NAME_NODE_ADDRESS: host.docker.internal:9000
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-alpine-deployment
+  labels:
+    app: test-alpine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-alpine
+  template:
+    metadata:
+      labels:
+        app: test-alpine
+    spec:
+      containers:
+      - name: test-alpine-container
+        image: redis:alpine3.17
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -75,9 +97,14 @@ spec:
         - name: KAFKA_INGESTION_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: INGESTOR_KAFKA_OUT_TOPIC
-
+        - name: KAFKA_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: main-config-5
+              key: KAFKA_ADDRESS
+            
 ---
 apiVersion: v1
 kind: Service
@@ -123,6 +150,11 @@ spec:
             configMapKeyRef:
               name: main-config
               key: INGESTOR_KAFKA_OUT_TOPIC
+        - name: KAFKA_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: main-config-5
+              key: KAFKA_ADDRESS
 
 ---
 apiVersion: v1
@@ -167,18 +199,23 @@ spec:
         - name: KAFKA_CONSUMER_GROUP
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_IDENTIFIER_KAFKA_CONSUMER_GROUP
         - name: KAFKA_IN_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_IDENTIFIER_KAFKA_IN_TOPIC
         - name: KAFKA_OUT_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_IDENTIFIER_KAFKA_OUT_TOPIC
+        - name: KAFKA_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: main-config-5
+              key: KAFKA_ADDRESS
 
 ---
 apiVersion: apps/v1
@@ -206,18 +243,23 @@ spec:
         - name: KAFKA_CONSUMER_GROUP
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_LEVEL_STANDARDIZER_KAFKA_CONSUMER_GROUP
         - name: KAFKA_IN_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_LEVEL_STANDARDIZER_KAFKA_IN_TOPIC
         - name: KAFKA_OUT_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_LEVEL_STANDARDIZER_KAFKA_OUT_TOPIC
+        - name: KAFKA_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: main-config-5
+              key: KAFKA_ADDRESS
 
 ---
 apiVersion: apps/v1
@@ -245,18 +287,23 @@ spec:
         - name: KAFKA_CONSUMER_GROUP
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_IDENTIFIER_BATCH_KAFKA_CONSUMER_GROUP
         - name: KAFKA_IN_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_IDENTIFIER_BATCH_KAFKA_IN_TOPIC
         - name: KAFKA_OUT_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_IDENTIFIER_BATCH_KAFKA_OUT_TOPIC
+        - name: KAFKA_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: main-config-5
+              key: KAFKA_ADDRESS
 
 ---
 apiVersion: apps/v1
@@ -284,18 +331,23 @@ spec:
         - name: KAFKA_CONSUMER_GROUP
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_LEVEL_STANDARDIZER_BATCH_KAFKA_CONSUMER_GROUP
         - name: KAFKA_IN_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_LEVEL_STANDARDIZER_BATCH_KAFKA_IN_TOPIC
         - name: KAFKA_OUT_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_LEVEL_STANDARDIZER_BATCH_KAFKA_OUT_TOPIC
+        - name: KAFKA_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: main-config-5
+              key: KAFKA_ADDRESS
 
 ---
 apiVersion: apps/v1
@@ -323,43 +375,48 @@ spec:
         - name: KAFKA_CONSUMER_GROUP
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_EVENT_PRESENTER_KAFKA_CONSUMER_GROUP
         - name: KAFKA_IN_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_EVENT_PRESENTER_KAFKA_IN_TOPIC
         - name: MONGODB_DB_NAME
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: MONGODB_NAME
         - name: MONGODB_ADDRESS
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: MONGODB_ADDRESS
         - name: REDIS_ADDRESS
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: REDIS_ADDRESS
         - name: REDIS_PASSWORD
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: REDIS_PASSWORD
         - name: BATCH_SIZE
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_EVENT_PRESENTER_BATCH_SIZE
         - name: BATCH_TIME_SECOND
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_EVENT_PRESENTER_BATCH_TIME_SECOND
+        - name: KAFKA_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: main-config-5
+              key: KAFKA_ADDRESS
 
 ---
 apiVersion: apps/v1
@@ -387,43 +444,48 @@ spec:
         - name: KAFKA_CONSUMER_GROUP
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_EVENT_PRESENTER_BATCH_KAFKA_CONSUMER_GROUP
         - name: KAFKA_IN_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_EVENT_PRESENTER_BATCH_KAFKA_IN_TOPIC
         - name: MONGODB_DB_NAME
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: MONGODB_NAME
         - name: MONGODB_ADDRESS
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: MONGODB_ADDRESS
         - name: REDIS_ADDRESS
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: REDIS_ADDRESS
         - name: REDIS_PASSWORD
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: REDIS_PASSWORD
         - name: BATCH_SIZE
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_EVENT_PRESENTER_BATCH_SIZE
         - name: BATCH_TIME_SECOND
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_EVENT_PRESENTER_BATCH_TIME_SECOND
+        - name: KAFKA_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: main-config-5
+              key: KAFKA_ADDRESS
 
 ---
 apiVersion: apps/v1
@@ -453,43 +515,48 @@ spec:
         - name: KAFKA_CONSUMER_GROUP
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_EVENT_PRESENTER_KAFKA_CONSUMER_GROUP
         - name: KAFKA_IN_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_EVENT_PRESENTER_KAFKA_IN_TOPIC
         - name: MONGODB_DB_NAME
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: MONGODB_NAME
         - name: MONGODB_ADDRESS
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: MONGODB_ADDRESS
         - name: REDIS_ADDRESS
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: REDIS_ADDRESS
         - name: REDIS_PASSWORD
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: REDIS_PASSWORD
         - name: BATCH_SIZE
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_EVENT_PRESENTER_BATCH_SIZE
         - name: BATCH_TIME_SECOND
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_EVENT_PRESENTER_BATCH_TIME_SECOND
+        - name: KAFKA_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: main-config-5
+              key: KAFKA_ADDRESS
 
 ---
 apiVersion: apps/v1
@@ -499,7 +566,7 @@ metadata:
   labels:
     app: audi-skripsi-lambda-batch-processor
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: audi-skripsi-lambda-batch-processor
@@ -519,23 +586,28 @@ spec:
         - name: KAFKA_CONSUMER_GROUP
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_BATCH_PROCESSOR_KAFKA_CONSUMER_GROUP
         - name: KAFKA_IN_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_BATCH_PROCESSOR_KAFKA_IN_TOPIC
         - name: KAFKA_OUT_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_BATCH_PROCESSOR_KAFKA_OUT_TOPIC
         - name: NAME_NODE_ADDRESS
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: NAME_NODE_ADDRESS
+        - name: KAFKA_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: main-config-5
+              key: KAFKA_ADDRESS
 
 ---
 apiVersion: v1
@@ -575,7 +647,7 @@ metadata:
   labels:
     app: audi-skripsi-lambda-batch-processor-ingest
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: audi-skripsi-lambda-batch-processor-ingest
@@ -595,23 +667,28 @@ spec:
         - name: KAFKA_CONSUMER_GROUP
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_BATCH_PROCESSOR_KAFKA_CONSUMER_GROUP
         - name: KAFKA_IN_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_BATCH_PROCESSOR_KAFKA_IN_TOPIC
         - name: KAFKA_OUT_TOPIC
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: LAMBDA_BATCH_PROCESSOR_KAFKA_OUT_TOPIC
         - name: NAME_NODE_ADDRESS
           valueFrom:
             configMapKeyRef:
-              name: main-config
+              name: main-config-5
               key: NAME_NODE_ADDRESS
+        - name: KAFKA_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: main-config-5
+              key: KAFKA_ADDRESS
 
 ---
 apiVersion: networking.k8s.io/v1
